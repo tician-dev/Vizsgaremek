@@ -1,0 +1,26 @@
+services:
+  postgresql:
+    image: postgres:15
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
+    env_file:
+      - conf/postgres.env
+    ports:
+      - "9432:5432"  # Ezt a portot kívülről használhatod
+    container_name: vizsgaremek-postgresql-1  # Egyedi konténer név, ha szükséges
+
+  api:
+    image: api
+    build: .
+    env_file:
+      - .env  # Az alkalmazásodnak a .env fájlt kell olvasnia
+    command: python manage.py runserver 0.0.0.0:8000
+    platform: linux/amd64
+    volumes:
+      - "./api:/api"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgresql  # Ez biztosítja, hogy a PostgreSQL konténer előbb induljon el
+volumes:
+  db-data:
