@@ -19,6 +19,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'vizsgaremek_app',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -64,6 +65,7 @@ WSGI_APPLICATION = 'vizsgaremek.wsgi.application'
 
 DATABASES = {
     'default': {
+        "ENGINE": "django.db.backends.postgresql",
         "HOST": os.environ.get("DATABASE_HOST", "postgresql"),
         "PORT": os.environ.get("DATABASE_PORT", "5432"),
         "NAME": os.environ.get("DATABASE_NAME", "vizsgaremek"),
