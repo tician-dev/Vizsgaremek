@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Logged Out{% endblock %}
+{% block title %}Kijelentkezve - Vizsgaremek{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="alert alert-info" role="alert">
-        <h4 class="alert-heading">You have been logged out</h4>
-        <p>You have successfully logged out of your account.</p>
+        <h4 class="alert-heading">Kijelentkeztél</h4>
+        <p>Sikeresen kijelentkeztél az alkalmazásból.</p>
         <hr>
         <p class="mb-0">
-            <a href="{% url 'login' %}" class="btn btn-primary">Login Again</a>
-            <a href="{% url 'home' %}" class="btn btn-secondary">Go Home</a>
+            <a href="{% url 'login' %}" class="btn btn-primary">Újra bejelentkezés</a>
+            <a href="{% url 'home' %}" class="btn btn-secondary">Főoldal</a>
         </p>
     </div>
 </div>

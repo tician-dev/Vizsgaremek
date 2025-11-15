@@ -13,14 +13,15 @@
             <div class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Oldalak</a>
                 <div class="dropdown-menu fade-down m-0">
-                    <a href="#" class="dropdown-item">Témakörök</a>
-                    <a href="#" class="dropdown-item">Valami</a>
-                    <a href="#" class="dropdown-item">Még valami</a>
+                    <a href="" class="dropdown-item">Témakörök</a>
+                    <a href="" class="dropdown-item">Valami</a>
+                    <a href="" class="dropdown-item">Még valami</a>
                 </div>
             </div>
             <a href="contact.html" class="nav-item nav-link">Kapcsolat</a>
         </div>
         
+        <!-- Bejelentkezett felhasználó vagy Login/Register -->
         {% if user.is_authenticated %}
             <div class="nav-item dropdown d-lg-flex d-none align-items-center">
                 <a href="#" class="btn btn-primary py-4 px-lg-5 dropdown-toggle" data-bs-toggle="dropdown" role="button">
@@ -41,8 +42,8 @@
                 <a href="{% url 'logout' %}" class="nav-link">Kijelentkezés</a>
             </div>
         {% else %}
-            <a href="{% url 'register' %}" class="btn btn-primary py-4 px-lg-5 d-none d-lg-block">
-                Regisztráció<i class="fa fa-arrow-right ms-3"></i>
+            <a href="{% url 'login' %}" class="btn btn-primary py-4 px-lg-5 d-none d-lg-block">
+                Bejelentkezés<i class="fa fa-arrow-right ms-3"></i>
             </a>
             <!-- Mobile menu -->
             <div class="nav-item d-lg-none">

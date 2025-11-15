@@ -31,3 +31,6 @@ KÖNYVTÁR:
     - conf könyvtár : ez tartalmazza a konfigurációhoz szükséges .env fájl , erre is ugyanaz vonatkozik !
     - api könyvtár : ez tartalmazza az projekt és a applikáció könyvtárát
 
+FELHASZNÁLÓKEZELÉS:
+    CSRF_TOKEN:
+        Ez készít nekünk egyedi tokent , aminek a használatával továbbléphetünk . Egy egyedi és mindig újat generál 

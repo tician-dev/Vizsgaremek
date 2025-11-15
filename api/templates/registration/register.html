@@ -1,10 +1,7 @@
-{% extends "base.html" %}
-
-{% block title %}Bejelentkezés - Vizsgaremek{% endblock %}
-
+{% extends "base.html" %} 
 {% block content %}
 <div class="container mt-5 mx-auto border border-dark p-4" style="max-width: 500px;">
-  <h2 class="mb-4">Bejelentkezés</h2>
+  <h2 class="mb-4">Regisztráció</h2>
   
   <!-- Üzenetek megjelenítése -->
   {% if messages %}
@@ -27,8 +24,8 @@
     </div>
   {% endif %}
 
-  <form method="post" novalidate>
-    {% csrf_token %}
+  <form class="form-with-validation" action="/register/" method="post" novalidate>
+    {% csrf_token %} 
     
     <!-- Felhasználónév -->
     <div class="mb-3">
@@ -45,22 +42,35 @@
 
     <!-- Jelszó -->
     <div class="mb-3">
-      <label for="{{ form.password.id_for_label }}" class="form-label">Jelszó</label>
-      {{ form.password }}
-      {% if form.password.errors %}
+      <label for="{{ form.password1.id_for_label }}" class="form-label">Jelszó</label>
+      {{ form.password1 }}
+      {% if form.password1.errors %}
         <div class="invalid-feedback d-block text-danger">
-          {% for error in form.password.errors %}
+          {% for error in form.password1.errors %}
             <small>{{ error }}</small><br>
           {% endfor %}
         </div>
       {% endif %}
     </div>
 
-    <button type="submit" class="btn btn-primary w-100">Bejelentkezés</button>
+    <!-- Jelszó megerősítés -->
+    <div class="mb-3">
+      <label for="{{ form.password2.id_for_label }}" class="form-label">Jelszó megerősítés</label>
+      {{ form.password2 }}
+      {% if form.password2.errors %}
+        <div class="invalid-feedback d-block text-danger">
+          {% for error in form.password2.errors %}
+            <small>{{ error }}</small><br>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Regisztráció</button>
   </form>
 
   <p class="mt-3 text-center">
-    Nincs még fiókod? <a href="{% url 'register' %}">Regisztrálj most!</a>
+    Már van fiókod? <a href="{% url 'login' %}">Jelentkezz be!</a>
   </p>
 </div>
 
