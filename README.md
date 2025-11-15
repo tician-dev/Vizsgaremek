@@ -15,7 +15,8 @@ SETUP:
    Ha nem kapcsolódik a postresql adatbázis , annak az az oka , hogy az adatbázis volume létrejött , de maga az adatbázis nem . 
    Hozzuk létre. bash --> sudo ./database.sh
    3. Új bash --> sudo ./shell.sh (itt tudsz a programra vonatkozó parancsokat , utasításokat kiadni futásidőben)
-   4. Az újonnan megnyilt bashban a parancs ./manage.py createsuperuser . Aaztán ./manage.py makemigration . Aztán ./manage.py migrate .  
+   4. Ha szeretnénk a Docker containerbe eszközöket akkor most megtehetjük , parancs: apt-get update apt-get install -y mc
+   5. Az újonnan megnyilt bashban a parancs ./manage.py createsuperuser . Aaztán ./manage.py makemigration . Aztán ./manage.py migrate .  
 
 
 KÖNYVTÁR: 
