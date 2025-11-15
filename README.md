@@ -7,7 +7,8 @@ KÖVETELMÉNYEK:
 
     Windows alatt is ugyanúgy működik a .sh fájlokban lévő parancsokat kell használni , de ezek eltérhetnek a linuxostól .
 
-SETUP: 
+SETUP
+ 
    0. Adjunk meg minden jogot a felhasználónknak a könyvtár tartalmához --->
    parancs a Vizsgaremek/ könyvtárban: sudo ./permission.sh
    1. bash --> sudo build.sh (Ez letölt minden szükséged dolgot és lebuildeli a programunkat. Ezt csak először kell mentenni , vagy akkor ha új csomagot tettünk a requirements-source.txt -be)
