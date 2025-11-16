@@ -1,17 +1,14 @@
-{% extends "base.html" %}
-
-{% block title %}Kijelentkezve - Vizsgaremek{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Kijelentkezve - Vizsgaremek{%
+endblock %} {% block content %}
 <div class="container mt-5">
-    <div class="alert alert-info" role="alert">
-        <h4 class="alert-heading">Kijelentkeztél</h4>
-        <p>Sikeresen kijelentkeztél az alkalmazásból.</p>
-        <hr>
-        <p class="mb-0">
-            <a href="{% url 'login' %}" class="btn btn-primary">Újra bejelentkezés</a>
-            <a href="{% url 'home' %}" class="btn btn-secondary">Főoldal</a>
-        </p>
-    </div>
+  <div class="alert alert-info" role="alert">
+    <h4 class="alert-heading">Kijelentkeztél</h4>
+    <p>Sikeresen kijelentkeztél az alkalmazásból.</p>
+    <hr />
+    <p class="mb-0">
+      <a href="{% url 'login' %}" class="btn btn-primary">Újra bejelentkezés</a>
+      <a href="{% url 'home' %}" class="btn btn-secondary">Főoldal</a>
+    </p>
+  </div>
 </div>
 {% endblock %}

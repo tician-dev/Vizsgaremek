@@ -1,58 +1,67 @@
-{% extends "base.html" %}
-
-{% block title %}Bejelentkezés - Vizsgaremek{% endblock %}
-
-{% block content %}
-<div class="container mt-5 mx-auto border border-dark p-4" style="max-width: 500px;">
+{% extends "base.html" %} {% block title %}Bejelentkezés - Vizsgaremek{%endblock %} {% block content %}
+<div
+  class="container mt-5 mx-auto border border-dark p-4"
+  style="max-width: 500px"
+>
   <h2 class="mb-4">Bejelentkezés</h2>
-  
+
   <!-- Üzenetek megjelenítése -->
   {% if messages %}
-    <div class="alert-container mb-3">
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Bezárás"></button>
-        </div>
-      {% endfor %}
+  <div class="alert-container mb-3">
+    {% for message in messages %}
+    <div
+      class="alert alert-{{ message.tags }} alert-dismissible fade show"
+      role="alert"
+    >
+      {{ message }}
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+        aria-label="Bezárás"
+      ></button>
     </div>
+    {% endfor %}
+  </div>
   {% endif %}
 
   <!-- Form hibák -->
   {% if form.non_field_errors %}
-    <div class="alert alert-danger" role="alert">
-      {% for error in form.non_field_errors %}
-        <strong>Hiba:</strong> {{ error }}<br>
-      {% endfor %}
-    </div>
+  <div class="alert alert-danger" role="alert">
+    {% for error in form.non_field_errors %}
+    <strong>Hiba:</strong> {{ error }}<br />
+    {% endfor %}
+  </div>
   {% endif %}
 
   <form method="post" novalidate>
     {% csrf_token %}
-    
+
     <!-- Felhasználónév -->
     <div class="mb-3">
-      <label for="{{ form.username.id_for_label }}" class="form-label">Felhasználónév</label>
-      {{ form.username }}
-      {% if form.username.errors %}
-        <div class="invalid-feedback d-block text-danger">
-          {% for error in form.username.errors %}
-            <small>{{ error }}</small><br>
-          {% endfor %}
-        </div>
+      <label for="{{ form.username.id_for_label }}" class="form-label"
+        >Felhasználónév</label
+      >
+      {{ form.username }} {% if form.username.errors %}
+      <div class="invalid-feedback d-block text-danger">
+        {% for error in form.username.errors %}
+        <small>{{ error }}</small><br />
+        {% endfor %}
+      </div>
       {% endif %}
     </div>
 
     <!-- Jelszó -->
     <div class="mb-3">
-      <label for="{{ form.password.id_for_label }}" class="form-label">Jelszó</label>
-      {{ form.password }}
-      {% if form.password.errors %}
-        <div class="invalid-feedback d-block text-danger">
-          {% for error in form.password.errors %}
-            <small>{{ error }}</small><br>
-          {% endfor %}
-        </div>
+      <label for="{{ form.password.id_for_label }}" class="form-label"
+        >Jelszó</label
+      >
+      {{ form.password }} {% if form.password.errors %}
+      <div class="invalid-feedback d-block text-danger">
+        {% for error in form.password.errors %}
+        <small>{{ error }}</small><br />
+        {% endfor %}
+      </div>
       {% endif %}
     </div>
 
@@ -69,37 +78,38 @@
     border-radius: 6px;
     font-size: 0.95rem;
   }
-  
+
   .alert-success {
     background-color: #d4edda;
     border-color: #c3e6cb;
     color: #155724;
   }
-  
+
   .alert-error {
     background-color: #f8d7da;
     border-color: #f5c6cb;
     color: #721c24;
   }
-  
-  form input, form select {
+
+  form input,
+  form select {
     width: 100%;
     padding: 0.5rem;
     border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 0.95rem;
   }
-  
+
   form input:focus {
     border-color: #80bdff;
     outline: none;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
   }
-  
+
   form input.is-invalid {
     border-color: #dc3545;
   }
-  
+
   .invalid-feedback {
     font-size: 0.85rem;
     margin-top: 0.25rem;
