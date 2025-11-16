@@ -64,7 +64,7 @@ def login(request):
 
 def profile(request):
     """Bejelentkezett felhasználó profilja"""
-    return render(request, 'profile.html')
+    return render(request, 'registration/profile.html')
 
 def logout(request):
     auth_logout(request)
@@ -82,6 +82,8 @@ def debug(request):
     }
     return JsonResponse(context)
 
+def test(request):
+    return render(request, 'test.html')
 
 
 

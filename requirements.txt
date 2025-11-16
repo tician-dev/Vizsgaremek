@@ -22,5 +22,10 @@ pynacl
 yt-dlp[default]
 django-import-export
 langchain-community
-langchain-openai
 django-jazzmin
+
+
+
+
+
+

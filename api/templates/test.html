@@ -1,0 +1,30 @@
+{% extends "base.html" %} {% load static %} {% block title %}Vizsgaremek - Online Oktatás{% endblock %} {% block content %}
+<div class="container-fluid p-0 mb-5">
+  <div class="owl-carousel header-carousel position-relative">
+    <div class="owl-carousel-item position-relative">
+      <div class="owl-carousel-inner">
+        <div class="container">
+          <div
+            class="row justify-content-start"
+            style="min-height: 400px"
+          >
+            <div
+              class="col-lg-8 col-10 text-center text-lg-start"
+            >
+              <h1
+                class="display-1 text-white mb-md-4"
+              >
+                Teszt oldal
+              </h1>
+              <a
+                href="{% url 'home' %}"
+                class="btn btn-primary py-md-3 px-md-5 me-3"
+                >Vissza a főoldalra</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
