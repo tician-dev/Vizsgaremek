@@ -23,9 +23,7 @@ yt-dlp[default]
 django-import-export
 langchain-community
 django-jazzmin
-
-
-
+langchain-openai
 
 
 

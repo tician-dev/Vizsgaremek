@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+from testengine.engine import ( EvaluationEngine,EvaluationInput,RatingSummary,TextFeedback,ObjectiveData, )
 
 
 # Other views
@@ -82,8 +83,40 @@ def debug(request):
     }
     return JsonResponse(context)
 
-def test(request):
-    return render(request, 'test.html')
+def evaluation(request, evaluated_id: int):
+    
+    # Itt a DB-ből összegyűjtöd az adott személy értékeléseit,
+    # majd feltöltöd vele az EvaluationInput-ot.
+
+    data = EvaluationInput(
+        evaluated_id=evaluated_id,
+        evaluated_name="Kiss Péter",
+        evaluated_role="teacher",  # vagy "student"
+        context="2024/25 1. félév, Matematika",
+        ratings=[
+            RatingSummary(dimension="Kommunikáció", self_score=4.2, others_score=3.8),
+            RatingSummary(dimension="Felkészültség", self_score=4.5, others_score=4.3),
+        ],
+        texts=[
+            TextFeedback(
+                source_type="student",
+                question_label="Mi az, amit különösen értékelsz a tanár óráin?",
+                content="Nagyon érthetően magyaráz, sok példával."
+            ),
+            TextFeedback(
+                source_type="student",
+                question_label="Min lenne érdemes javítani?",
+                content="Néha túl gyorsan megy végig az anyagon."
+            ),
+        ],
+        objective_data=[
+            ObjectiveData(label="Átlagos óralátogatás", value="95%"),
+        ],
+    )
+
+    engine = EvaluationEngine(model="gpt-4o", reasoning_effort="medium")
+    feedback_text = engine.generate_feedback(data)
+    return render(request, 'evaluation.html' , {'feedback': feedback_text})
 
 
 
