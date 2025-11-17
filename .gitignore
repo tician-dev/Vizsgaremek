@@ -23,11 +23,6 @@ db.sqlite3
 db.sqlite3-journal
 local_settings.py
 
-# Statikus és média fájlok (általában generáltak)
-static/
-staticfiles/
-media/
-
 # ---- Tesztelés / coverage ----
 .pytest_cache/
 .coverage
