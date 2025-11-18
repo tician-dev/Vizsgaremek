@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div style="max-width: 800px; margin: 2rem auto;">
+    <h1>Tanár választása értékeléshez</h1>
+
+    {% if teachers %}
+      <p>Válaszd ki, melyik tanárt szeretnéd értékelni:</p>
+
+      <ul>
+        {% for teacher in teachers %}
+          <li>
+            {{ teacher.get_full_name|default:teacher.username }}
+            – <a href="{% url 'evaluation' teacher.id %}">Értékelés indítása</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Jelenleg nincs egyetlen tanár sem a rendszerben (nincs 'teacher' csoportba sorolt user).</p>
+    {% endif %}
+  </div>
+{% endblock %}

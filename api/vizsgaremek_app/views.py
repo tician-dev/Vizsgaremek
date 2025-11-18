@@ -1,11 +1,15 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404 , render
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from testengine.engine import ( EvaluationEngine,EvaluationInput,RatingSummary,TextFeedback,ObjectiveData, )
+from .forms import EvaluationForm, RegisterForm
+from .models import Evaluation, Answer
+from django.contrib.auth import get_user_model
+from .engine import EvaluationEngine
+from django.contrib.auth.models import Group
 
 
 # Other views
@@ -14,35 +18,30 @@ def home(request):
 
 # Authentication views
 def register(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Sikeres regisztráció! Most be tudsz jelentkezni.')
-            return redirect('login')
-        else:
-            # Hibák megjelenítése és lefordítása magyarúra
-            for field, errors in form.errors.items():
-                for error in errors:
-                    error_msg = str(error)
-                    
-                    # Fordítások
-                    if "already exists" in error_msg or "exists" in error_msg:
-                        messages.error(request, 'Felhasználónév már foglalt!')
-                    elif "password" in error_msg.lower() and "common" in error_msg.lower():
-                        messages.error(request, 'A jelszó túl általános. Válassz erősebb jelszót!')
-                    elif "password" in error_msg.lower() and "similar" in error_msg.lower():
-                        messages.error(request, 'A jelszó túl hasonló a felhasználónévhez!')
-                    elif "password" in error_msg.lower() and "numeric" in error_msg.lower():
-                        messages.error(request, 'A jelszó nem lehet csak számokból álló!')
-                    elif "password" in error_msg.lower() and "short" in error_msg.lower():
-                        messages.error(request, 'A jelszó legalább 8 karakter hosszú kell legyen!')
-                    else:
-                        messages.error(request, f'{error_msg}')
-            return render(request, 'registration/register.html', {'form': form})
+            user = form.save()
+
+            role = form.cleaned_data["role"]  # "student" vagy "teacher"
+
+            # Csoport hozzárendelés
+            try:
+                group_name = "teacher" if role == "teacher" else "student"
+                group = Group.objects.get(name=group_name)
+                user.groups.add(group)
+            except Group.DoesNotExist:
+                # Ha nincs ilyen group, akkor egyszerűen nem csinálunk semmit
+                pass
+
+            # Beléptetjük a frissen regisztrált user-t (opcionális)
+            auth_login(request, user)
+
+            return redirect("home")  # vagy ahová szeretnéd
     else:
-        form = UserCreationForm()
-    return render(request, 'registration/register.html', {'form': form})
+        form = RegisterForm()
+
+    return render(request, "registration/register.html", {"form": form})
 
 def login(request):
     if request.method == 'POST':
@@ -83,45 +82,220 @@ def debug(request):
     }
     return JsonResponse(context)
 
-def evaluation(request):
+
+@login_required
+def evaluate_teacher(request, teacher_id):
+    questionnaire_type = "student_to_teacher"
+    teacher = get_object_or_404(User, pk=teacher_id)
+
+    if request.method == "POST":
+        form = EvaluationForm(request.POST, questionnaire_type=questionnaire_type)
+        if form.is_valid():
+            evaluation = Evaluation.objects.create(
+                questionnaire_type=questionnaire_type,
+                rater=request.user,
+                evaluated=teacher,
+                evaluated_role="teacher",
+                context="2024/25 1. félév, általános értékelés",
+                is_anonymous=True,
+            )
+
+            for question in form.questions:
+                field_name = f"q_{question.id}"
+                raw_value = form.cleaned_data.get(field_name)
+
+                if question.question_type == "scale":
+                    Answer.objects.create(
+                        evaluation=evaluation,
+                        question=question,
+                        value_int=int(raw_value) if raw_value is not None else None,
+                    )
+                else:
+                    Answer.objects.create(
+                        evaluation=evaluation,
+                        question=question,
+                        value_text=raw_value or "",
+                    )
+
+            return redirect("evaluation_thanks")
+    else:
+        form = EvaluationForm(questionnaire_type=questionnaire_type)
+
+    return render(
+        request,
+        "evaluation/evaluate_teacher.html",
+        {"form": form, "teacher": teacher},
+    )
+
+
+User = get_user_model()
+
+
+@login_required
+def evaluation(request, teacher_id=None):
+    """
+    1. lépés: strukturált pontozás (Likert).
+    Csak a question_type='scale' kérdéseket jeleníti meg.
+    """
+
+    questionnaire_type = "student_to_teacher"
+
+    if teacher_id is not None:
+        teacher = get_object_or_404(User, pk=teacher_id)
+    else:
+        teacher = request.user  # ideiglenes default
+
+    if request.method == "POST":
+        form = EvaluationForm(
+            request.POST,
+            questionnaire_type=questionnaire_type,
+            question_type_filter="scale",   # <-- csak skálás kérdések
+        )
+        if form.is_valid():
+            evaluation = Evaluation.objects.create(
+                questionnaire_type=questionnaire_type,
+                rater=request.user,
+                evaluated=teacher,
+                evaluated_role="teacher",
+                context="2024/25 1. félév, általános értékelés",
+                is_anonymous=True,
+            )
+
+            for question in form.questions:
+                field_name = f"q_{question.id}"
+                raw_value = form.cleaned_data.get(field_name)
+
+                Answer.objects.create(
+                    evaluation=evaluation,
+                    question=question,
+                    value_int=int(raw_value) if raw_value is not None else None,
+                )
+
+            # --> TOVÁBB A 2. LÉPÉSRE (szöveges kérdések)
+            return redirect("evaluation_open", evaluation_id=evaluation.id)
+    else:
+        form = EvaluationForm(
+            questionnaire_type=questionnaire_type,
+            question_type_filter="scale",
+        )
+
+    question_fields = [
+        (form[field_name], question)
+        for field_name, question in form.question_fields
+    ]
+
+    return render(
+        request,
+        "evaluation/evaluate_teacher.html",
+        {
+            "form": form,
+            "teacher": teacher,
+            "question_fields": question_fields,
+        },
+    )
     
-    # Itt a DB-ből összegyűjtöd az adott személy értékeléseit,
-    # majd feltöltöd vele az EvaluationInput-ot.
+    
+@login_required
+def evaluation_open(request, evaluation_id):
+    """
+    2. lépés: nyitott, szöveges visszajelzések.
+    Ugyanahhoz az Evaluation-höz menti a text típusú válaszokat.
+    """
 
-    #data = EvaluationInput(
-    #    evaluated_id=1,
-    #    evaluated_name="Kiss Péter",
-    #    evaluated_role="teacher",  # vagy "student"
-    #    context="2024/25 1. félév, Matematika",
-    #    ratings=[
-    #        RatingSummary(dimension="Kommunikáció", self_score=4.2, others_score=3.8),
-    #        RatingSummary(dimension="Felkészültség", self_score=4.5, others_score=4.3),
-    #    ],
-    #    texts=[
-    #        TextFeedback(
-    #            source_type="student",
-    #            question_label="Mi az, amit különösen értékelsz a tanár óráin?",
-    #            content="Nagyon érthetően magyaráz, sok példával."
-    #        ),
-    #        TextFeedback(
-    #            source_type="student",
-    #            question_label="Min lenne érdemes javítani?",
-    #            content="Néha túl gyorsan megy végig az anyagon."
-    #        ),
-    #    ],
-    #    objective_data=[
-    #        ObjectiveData(label="Átlagos óralátogatás", value="95%"),
-    #    ],
-    #)
-#
-    #engine = EvaluationEngine(model="gpt-4o", reasoning_effort="medium")
-    #feedback_text = engine.generate_feedback(data)
-    return render(request, 'evaluation.html')
+    evaluation = get_object_or_404(Evaluation, pk=evaluation_id, rater=request.user)
+    questionnaire_type = evaluation.questionnaire_type
+    teacher = evaluation.evaluated  # ugyanaz a tanár
+
+    if request.method == "POST":
+        form = EvaluationForm(
+            request.POST,
+            questionnaire_type=questionnaire_type,
+            question_type_filter="text",   # <-- csak szöveges kérdések
+        )
+        if form.is_valid():
+            for question in form.questions:
+                field_name = f"q_{question.id}"
+                raw_value = form.cleaned_data.get(field_name)
+
+                Answer.objects.create(
+                    evaluation=evaluation,
+                    question=question,
+                    value_text=raw_value or "",
+                )
+
+            return redirect("evaluation_thanks")
+    else:
+        form = EvaluationForm(
+            questionnaire_type=questionnaire_type,
+            question_type_filter="text",
+        )
+
+    question_fields = [
+        (form[field_name], question)
+        for field_name, question in form.question_fields
+    ]
+
+    return render(
+        request,
+        "evaluation/evaluate_teacher_open.html",
+        {
+            "form": form,
+            "teacher": teacher,
+            "evaluation": evaluation,
+            "question_fields": question_fields,
+        },
+    )
+    
+    
+def evaluation_thanks(request):
+    return render(request, "evaluation/thanks.html")
+
+@login_required
+def teacher_report(request, teacher_id):
+    """
+    Tanár összesített szöveges értékelése (GPT által generált).
+    - teacher_id: az értékelt tanár User.id-je
+    """
+    User = get_user_model()
+    teacher = get_object_or_404(User, pk=teacher_id)
+
+    # Ha szeretnél konkrét kontextusra szűrni (pl. félév + tantárgy), itt add meg:
+    # context_str = "2024/25 1. félév, Matematika"
+    context_str = None  # Most: minden elérhető értékelés összevonva
+
+    engine = EvaluationEngine(model="gpt-5.1")  # ha nincs hozzáférés, átírhatod "gpt-4o"-ra
+    feedback_text = engine.generate_feedback_for_teacher(
+        teacher=teacher,
+        context=context_str,
+    )
+
+    return render(
+        request,
+        "evaluation/teacher_report.html",
+        {
+            "teacher": teacher,
+            "context_str": context_str,
+            "feedback_text": feedback_text,
+        },
+    )
 
 
 
 
+@login_required
+def teacher_list(request):
+    """
+    Tanárok listája – innen lehet kiválasztani, kit szeretne a diák értékelni.
+    Feltételezzük, hogy a tanárok a 'teacher' csoportban vannak.
+    """
+    try:
+        teacher_group = Group.objects.get(name="teacher")
+        teachers = User.objects.filter(groups=teacher_group)
+    except Group.DoesNotExist:
+        teachers = User.objects.none()
 
-
-
-
+    return render(
+        request,
+        "evaluation/teacher_list.html",
+        {"teachers": teachers},
+    )
