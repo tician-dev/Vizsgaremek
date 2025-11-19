@@ -33,11 +33,9 @@ def register(request):
             except Group.DoesNotExist:
                 # Ha nincs ilyen group, akkor egyszerűen nem csinálunk semmit
                 pass
-
-            # Beléptetjük a frissen regisztrált user-t (opcionális)
-            auth_login(request, user)
-
-            return redirect("home")  # vagy ahová szeretnéd
+            messages.success(request, "Sikeres regisztráció! Most már bejelentkezhetsz.")
+            return redirect("login")
+            
     else:
         form = RegisterForm()
 
@@ -87,13 +85,32 @@ def debug(request):
 def evaluate_teacher(request, teacher_id):
     questionnaire_type = "student_to_teacher"
     teacher = get_object_or_404(User, pk=teacher_id)
+    evaluator = request.user
+
+    # --- Szerveroldali védelem ---
+    same_user = (evaluator == teacher)
+    same_group = teacher.groups.filter(
+        id__in=evaluator.groups.values_list("id", flat=True)
+    ).exists()
+
+    if same_user or same_group:
+        messages.error(
+            request,
+            "Nem értékelheted önmagad vagy a saját csoportodba tartozó felhasználókat."
+        )
+        return redirect("teacher_list")  # vagy 'home'
 
     if request.method == "POST":
-        form = EvaluationForm(request.POST, questionnaire_type=questionnaire_type)
+        form = EvaluationForm(
+            request.POST,
+            questionnaire_type=questionnaire_type,
+            evaluator=evaluator,
+            evaluated_user=teacher,
+        )
         if form.is_valid():
             evaluation = Evaluation.objects.create(
                 questionnaire_type=questionnaire_type,
-                rater=request.user,
+                rater=evaluator,
                 evaluated=teacher,
                 evaluated_role="teacher",
                 context="2024/25 1. félév, általános értékelés",
@@ -119,7 +136,11 @@ def evaluate_teacher(request, teacher_id):
 
             return redirect("evaluation_thanks")
     else:
-        form = EvaluationForm(questionnaire_type=questionnaire_type)
+        form = EvaluationForm(
+            questionnaire_type=questionnaire_type,
+            evaluator=evaluator,
+            evaluated_user=teacher,
+        )
 
     return render(
         request,
@@ -140,21 +161,38 @@ def evaluation(request, teacher_id=None):
 
     questionnaire_type = "student_to_teacher"
 
-    if teacher_id is not None:
-        teacher = get_object_or_404(User, pk=teacher_id)
-    else:
-        teacher = request.user  # ideiglenes default
+    if teacher_id is None:
+        messages.error(request, "Először válaszd ki, melyik tanárt szeretnéd értékelni.")
+        return redirect("teacher_list")
+
+    teacher = get_object_or_404(User, pk=teacher_id)
+    evaluator = request.user
+
+    # --- tiltás: önmaga / saját csoport ---
+    same_user = (evaluator == teacher)
+    same_group = teacher.groups.filter(
+        id__in=evaluator.groups.values_list("id", flat=True)
+    ).exists()
+
+    if same_user or same_group:
+        messages.error(
+            request,
+            "Nem értékelheted önmagad vagy a saját csoportodba tartozó felhasználókat."
+        )
+        return redirect("teacher_list")
 
     if request.method == "POST":
         form = EvaluationForm(
             request.POST,
             questionnaire_type=questionnaire_type,
-            question_type_filter="scale",   # <-- csak skálás kérdések
+            question_type_filter="scale",
+            evaluator=evaluator,
+            evaluated_user=teacher,
         )
         if form.is_valid():
             evaluation = Evaluation.objects.create(
                 questionnaire_type=questionnaire_type,
-                rater=request.user,
+                rater=evaluator,
                 evaluated=teacher,
                 evaluated_role="teacher",
                 context="2024/25 1. félév, általános értékelés",
@@ -171,12 +209,13 @@ def evaluation(request, teacher_id=None):
                     value_int=int(raw_value) if raw_value is not None else None,
                 )
 
-            # --> TOVÁBB A 2. LÉPÉSRE (szöveges kérdések)
             return redirect("evaluation_open", evaluation_id=evaluation.id)
     else:
         form = EvaluationForm(
             questionnaire_type=questionnaire_type,
             question_type_filter="scale",
+            evaluator=evaluator,
+            evaluated_user=teacher,
         )
 
     question_fields = [
@@ -194,7 +233,6 @@ def evaluation(request, teacher_id=None):
         },
     )
     
-    
 @login_required
 def evaluation_open(request, evaluation_id):
     """
@@ -204,13 +242,16 @@ def evaluation_open(request, evaluation_id):
 
     evaluation = get_object_or_404(Evaluation, pk=evaluation_id, rater=request.user)
     questionnaire_type = evaluation.questionnaire_type
-    teacher = evaluation.evaluated  # ugyanaz a tanár
+    teacher = evaluation.evaluated
+    evaluator = request.user
 
     if request.method == "POST":
         form = EvaluationForm(
             request.POST,
             questionnaire_type=questionnaire_type,
-            question_type_filter="text",   # <-- csak szöveges kérdések
+            question_type_filter="text",
+            evaluator=evaluator,
+            evaluated_user=teacher,
         )
         if form.is_valid():
             for question in form.questions:
@@ -228,6 +269,8 @@ def evaluation_open(request, evaluation_id):
         form = EvaluationForm(
             questionnaire_type=questionnaire_type,
             question_type_filter="text",
+            evaluator=evaluator,
+            evaluated_user=teacher,
         )
 
     question_fields = [
@@ -290,7 +333,13 @@ def teacher_list(request):
     """
     try:
         teacher_group = Group.objects.get(name="teacher")
-        teachers = User.objects.filter(groups=teacher_group)
+        teachers = (
+            User.objects
+            .filter(groups=teacher_group)
+            .exclude(id=request.user.id)                      # önmagát ne lássa
+            .exclude(groups__in=request.user.groups.all())   # saját csoportját ne lássa
+            .distinct()
+        )
     except Group.DoesNotExist:
         teachers = User.objects.none()
 

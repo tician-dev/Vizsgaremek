@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from openai import OpenAI
 import openai  # az exception típusok miatt
-from .models import (Dimension,Question,Evaluation,Answer,ObjectiveMetric)
+from .models import Dimension, Question, Evaluation, Answer, ObjectiveMetric
 
 
 # ---------- Adatszerkezetek, amiket a nyelvi modell felé küldünk ----------
@@ -206,16 +206,12 @@ class EvaluationEngine:
         ratings: List[RatingSummary] = []
 
         # Milyen dimenziók jelennek meg a skálás kérdések között?
-        dim_ids = (
-            scale_questions.values_list("dimension_id", flat=True)
-            .distinct()
-        )
+        dim_ids = scale_questions.values_list("dimension_id", flat=True).distinct()
         dimensions = Dimension.objects.filter(id__in=dim_ids)
 
         for dim in dimensions:
-            dim_q_ids = (
-                scale_questions.filter(dimension=dim)
-                .values_list("id", flat=True)
+            dim_q_ids = scale_questions.filter(dimension=dim).values_list(
+                "id", flat=True
             )
 
             agg = (
@@ -327,7 +323,7 @@ class EvaluationEngine:
             )
 
         # Egyszerű szöveges kinyerés (Responses API)
-        # lásd: https://platform.openai.com/docs/guides/text 
+        # lásd: https://platform.openai.com/docs/guides/text
         try:
             return response.output_text
         except AttributeError:
@@ -409,13 +405,10 @@ class EvaluationEngine:
             "\n[Feladatod]\n"
             "1. Foglald össze röviden a tanár fő erősségeit.\n"
             "2. Nevezd meg a legfontosabb fejlesztendő területeket.\n"
-            "3. Adj legfeljebb 5 konkrét, gyakorlati javaslatot (\"Mit tegyen másképp?\").\n"
+            '3. Adj legfeljebb 5 konkrét, gyakorlati javaslatot ("Mit tegyen másképp?").\n'
             "4. Ha az adatok kevésnek tűnnek, ezt is jelezd, és óvatosan fogalmazz.\n"
             "5. Ne találj ki számokat vagy tényeket, csak az adatokból következtess.\n"
             "6. Magyarul válaszolj, tegezve, de tisztelettel.\n"
         )
 
         return "\n".join(lines)
-
-
-
