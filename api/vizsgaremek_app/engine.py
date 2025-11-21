@@ -4,8 +4,8 @@ from typing import Any, Literal, Optional, List
 import os
 from django.contrib.auth import get_user_model
 from django.db.models import Avg
-from openai import OpenAI
-import openai  # az exception típusok miatt
+from openai import OpenAI #type: ignore
+import openai  #type: ignore
 from .models import Dimension, Question, Evaluation, Answer, ObjectiveMetric
 
 
@@ -117,11 +117,7 @@ class EvaluationEngine:
             raise TypeError("teacher paraméternek Django User példánynak kell lennie.")
 
         # 1) Összes értékelés, ami erre a tanárra vonatkozik
-        eval_qs = Evaluation.objects.filter(
-            evaluated=teacher,
-            evaluated_role="teacher",
-            questionnaire_type=questionnaire_type,
-        )
+        eval_qs = Evaluation.objects.filter(evaluated=teacher,evaluated_role="teacher",questionnaire_type=questionnaire_type,)
         if context:
             eval_qs = eval_qs.filter(context=context)
 
@@ -198,10 +194,7 @@ class EvaluationEngine:
                 Answer.objects.filter(
                     evaluation__in=eval_qs,
                     question_id__in=dim_q_ids,
-                )
-                .exclude(value_int__isnull=True)
-                .aggregate(avg=Avg("value_int"))
-            )
+                ).exclude(value_int__isnull=True).aggregate(avg=Avg("value_int")))
 
             avg_score = agg["avg"]
 

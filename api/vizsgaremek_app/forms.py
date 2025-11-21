@@ -3,6 +3,7 @@ from .models import Question
 from django.contrib.auth.forms import UserCreationForm   # 🔹 EZ KELL
 from django.contrib.auth import get_user_model 
 from django.core.exceptions import ValidationError
+from .models import School
 
 User = get_user_model()
 
@@ -102,7 +103,15 @@ class RegisterForm(UserCreationForm):
         label="Szerep",
         widget=forms.RadioSelect,
     )
+    
+    school = forms.ModelChoiceField(
+        label="Iskola",
+        queryset=School.objects.all(),
+        empty_label="Válaszd ki az iskoládat",
+        widget=forms.Select(attrs={"class": "form-control"})  # opcionális
+    )
+    
 
     class Meta:
         model = User
-        fields = ("username", "email", "password1", "password2", "role")
+        fields = ("username", "email", "password1", "password2", "role","school",)

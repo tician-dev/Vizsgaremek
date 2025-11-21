@@ -1,7 +1,11 @@
 # evaluation/admin.py
 
 from django.contrib import admin
-from .models import Dimension, Question, Evaluation, Answer
+from .models import Dimension, Question, Evaluation, Answer , School
+
+class SchoolAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
 
 
 class QuestionInline(admin.TabularInline):

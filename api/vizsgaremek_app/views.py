@@ -306,7 +306,7 @@ def teacher_report(request, teacher_id):
     # context_str = "2024/25 1. félév, Matematika"
     context_str = None  # Most: minden elérhető értékelés összevonva
 
-    engine = EvaluationEngine(model="gpt-5.1")  # ha nincs hozzáférés, átírhatod "gpt-4o"-ra
+    engine = EvaluationEngine(model="gpt-5.1")  
     feedback_text = engine.generate_feedback_for_teacher(
         teacher=teacher,
         context=context_str,

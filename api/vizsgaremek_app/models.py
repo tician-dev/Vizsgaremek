@@ -2,8 +2,27 @@
 
 from django.conf import settings
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 
+# ---------- Iskolák ----------
+
+class School(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+    
+# ---------- Iskolák ----------
+
+class User(AbstractUser):
+    school = models.ForeignKey(
+        School,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="users",
+    )
 # ---------- Choice-ok ----------
 
 ROLE_CHOICES = (
