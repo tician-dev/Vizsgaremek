@@ -9,9 +9,6 @@ import openai  # az exception típusok miatt
 from .models import Dimension, Question, Evaluation, Answer, ObjectiveMetric
 
 
-# ---------- Adatszerkezetek, amiket a nyelvi modell felé küldünk ----------
-
-
 @dataclass
 class RatingSummary:
     """
@@ -32,7 +29,7 @@ class TextFeedback:
     """
     Szöveges visszajelzés (pl. diák nyitott kérdésre adott válasza).
     """
-
+    
     source_type: Literal["student", "teacher", "other"]
     text: str
 
@@ -75,29 +72,17 @@ class EvaluationEngine:
         summary_text = engine.generate_feedback_for_teacher(user_obj, context="2024/25 1. félév")
     """
 
-    def __init__(
-        self,
-        model: str = "gpt-5.1",
-    ) -> None:
+    def __init__(self,model: str = "gpt-5.1",) -> None:
         """
         model: API modellnév. Ha nincs GPT-5.1 hozzáférésed,
                átírhatod pl. "gpt-4o"-ra.
         """
-        # Ha kell, itt adhatsz meg explicit api_key-t, de
-        # ajánlott az OPENAI_API_KEY környezeti változó:
-        #   export OPENAI_API_KEY="..."
-        self.client = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY"),
-        )
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"),)
         self.model = model
 
     # ---------- Publikus: tanárra aggregált feedback ----------
 
-    def generate_feedback_for_teacher(
-        self,
-        teacher,
-        context: Optional[str] = None,
-    ) -> str:
+    def generate_feedback_for_teacher(self,teacher,context: Optional[str] = None,) -> str:
         """
         Teljes folyamat:
         - ORM-ből összegyűjti az adott tanárra vonatkozó értékeléseket
@@ -118,12 +103,7 @@ class EvaluationEngine:
 
     # ---------- ORM → EvaluationInput ----------
 
-    def build_input_for_teacher(
-        self,
-        teacher,
-        context: Optional[str] = None,
-        questionnaire_type: str = "student_to_teacher",
-    ) -> Optional[EvaluationInput]:
+    def build_input_for_teacher(self,teacher,context: Optional[str] = None,questionnaire_type: str = "student_to_teacher",) -> Optional[EvaluationInput]:
         """
         Django ORM-ből összegyűjti az adott tanárra vonatkozó adatokat,
         és visszaad egy EvaluationInput objektumot.
