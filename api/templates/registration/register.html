@@ -40,4 +40,9 @@
 
     <button type="submit">Regisztráció</button>
   </form>
+  <form method="post">
+    <label for="full_name">Teljes neved: </label>
+    <input id="your_name" type="text" name="your_name" value="{{ current_name }}">
+    <input type="submit" value="OK">
+</form>
 {% endblock %}

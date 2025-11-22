@@ -2,8 +2,6 @@
 
 from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-
 
 # ---------- Iskolák ----------
 
@@ -13,16 +11,18 @@ class School(models.Model):
     def __str__(self):
         return self.name
     
-# ---------- Iskolák ----------
+# ---------- Felhasználók ----------
 
-class User(AbstractUser):
-    school = models.ForeignKey(
-        School,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="users",
-    )
+class User(models.Model):
+    username = models.CharField(max_length=150, unique=True)
+    full_name = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)
+    role = models.CharField(max_length=20, choices=(("teacher", "Tanár"), ("student", "Diák")))
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="users")
+
+    def __str__(self):
+        return f"{self.full_name} ({self.username})"
+
 # ---------- Choice-ok ----------
 
 ROLE_CHOICES = (
