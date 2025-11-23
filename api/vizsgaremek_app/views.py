@@ -5,37 +5,51 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from .forms import EvaluationForm, RegisterForm
-from .models import Evaluation, Answer
-from django.contrib.auth import get_user_model
-from .engine import EvaluationEngine
-from django.contrib.auth.models import Group
-
+from testengine.engine import ( EvaluationEngine,EvaluationInput,RatingSummary,TextFeedback,ObjectiveData, )
+from .decorators import user_not_authenticated
 
 # Other views
 def home(request):
     return render(request, 'home.html')
 
 # Authentication views
+def activateEmail(request, user, to_email):
+   messages.success(
+    request,
+    f"Kedves {user.username}! A regisztráció befejezéséhez kérlek, nézd meg a(z) {to_email} címhez tartozó e-mail fiók Beérkező leveleit. "
+    "Ott találsz egy aktiváló linket."
+)
+@user_not_authenticated
 def register(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-
-            role = form.cleaned_data["role"]  # "student" vagy "teacher"
-
-            # Csoport hozzárendelés
-            try:
-                group_name = "teacher" if role == "teacher" else "student"
-                group = Group.objects.get(name=group_name)
-                user.groups.add(group)
-            except Group.DoesNotExist:
-                # Ha nincs ilyen group, akkor egyszerűen nem csinálunk semmit
-                pass
-            messages.success(request, "Sikeres regisztráció! Most már bejelentkezhetsz.")
-            return redirect("login")
+            user.is_active = False  # Inaktiváljuk a felhasználót az email megerősítésig
+            user.save()
             
+            activateEmail(request, user, form.cleaned_data.get('email'))
+            return redirect('home')
+        else:
+            # Hibák megjelenítése és lefordítása magyarúra
+            for field, errors in form.errors.items():
+                for error in errors:
+                    error_msg = str(error)
+                    
+                    # Fordítások
+                    if "already exists" in error_msg or "exists" in error_msg:
+                        messages.error(request, 'Felhasználónév már foglalt!')
+                    elif "password" in error_msg.lower() and "common" in error_msg.lower():
+                        messages.error(request, 'A jelszó túl általános. Válassz erősebb jelszót!')
+                    elif "password" in error_msg.lower() and "similar" in error_msg.lower():
+                        messages.error(request, 'A jelszó túl hasonló a felhasználónévhez!')
+                    elif "password" in error_msg.lower() and "numeric" in error_msg.lower():
+                        messages.error(request, 'A jelszó nem lehet csak számokból álló!')
+                    elif "password" in error_msg.lower() and "short" in error_msg.lower():
+                        messages.error(request, 'A jelszó legalább 8 karakter hosszú kell legyen!')
+                    else:
+                        messages.error(request, f'{error_msg}')
+            return render(request, 'registration/register.html', {'form': form})
     else:
         form = RegisterForm()
 
