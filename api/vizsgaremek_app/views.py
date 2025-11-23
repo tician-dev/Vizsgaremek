@@ -6,20 +6,30 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from testengine.engine import ( EvaluationEngine,EvaluationInput,RatingSummary,TextFeedback,ObjectiveData, )
-
+from .decorators import user_not_authenticated
 
 # Other views
 def home(request):
     return render(request, 'home.html')
 
 # Authentication views
+def activateEmail(request, user, to_email):
+   messages.success(
+    request,
+    f"Kedves {user.username}! A regisztráció befejezéséhez kérlek, nézd meg a(z) {to_email} címhez tartozó e-mail fiók Beérkező leveleit. "
+    "Ott találsz egy aktiváló linket."
+)
+@user_not_authenticated
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Sikeres regisztráció! Most be tudsz jelentkezni.')
-            return redirect('login')
+            user = form.save()
+            user.is_active = False  # Inaktiváljuk a felhasználót az email megerősítésig
+            user.save()
+            
+            activateEmail(request, user, form.cleaned_data.get('email'))
+            return redirect('home')
         else:
             # Hibák megjelenítése és lefordítása magyarúra
             for field, errors in form.errors.items():
