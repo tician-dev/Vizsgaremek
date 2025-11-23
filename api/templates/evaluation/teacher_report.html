@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div style="max-width: 900px; margin: 2rem auto;">
+    <h1>
+      Tanári értékelés – összefoglaló riport<br>
+      {{ teacher.get_full_name|default:teacher.username }}
+    </h1>
+
+    {% if context_str %}
+      <p><strong>Kontekstus:</strong> {{ context_str }}</p>
+    {% else %}
+      <p><strong>Kontekstus:</strong> Összes elérhető értékelés (minden félév / kurzus összevonva).</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Automatikus szöveges értékelés</h2>
+
+    {% if feedback_text %}
+      <div style="white-space: pre-wrap; line-height: 1.6; margin-top: 1rem;">
+        {{ feedback_text }}
+      </div>
+    {% else %}
+      <p>Nincs elérhető automatikus értékelés ehhez a tanárhoz.</p>
+    {% endif %}
+
+    <hr style="margin-top: 2rem;">
+
+    <p style="font-size: 0.9rem; color: #666;">
+      Megjegyzés: Az értékelés a rendszerben rögzített diák-visszajelzésekre és objektív adatokra
+      támaszkodik. Nem tekinthető hivatalos minősítésnek, inkább fejlesztő visszajelzésként érdemes olvasni.
+    </p>
+  </div>
+{% endblock %}

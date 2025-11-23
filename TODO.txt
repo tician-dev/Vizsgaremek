@@ -1,0 +1,4 @@
+analyze.py 
+chetbot.py
+https://kir.oktatas.hu/
+2lépcső 

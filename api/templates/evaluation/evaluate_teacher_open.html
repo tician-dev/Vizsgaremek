@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div style="max-width: 800px; margin: 2rem auto;">
+    <h1>
+      Tanár értékelése – nyitott visszajelzés<br>
+      {{ teacher.get_full_name|default:teacher.username }}
+    </h1>
+
+    <p>
+      Most néhány nyitott kérdés következik. Kérjük, saját szavaiddal válaszolj,
+      amennyire őszintén és konkrétan csak tudsz. A válaszaid anonimek, és
+      fejlesztő céllal használjuk őket.
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+
+      {% for field, question in question_fields %}
+        <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
+          <p style="margin-bottom: 0.3rem;"><strong>{{ question.text }}</strong></p>
+
+          <div>
+            {{ field }}
+            {% if field.errors %}
+              <div style="color: red;">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+
+      <button type="submit">Küldés</button>
+    </form>
+  </div>
+{% endblock %}

@@ -24,6 +24,6 @@ django-import-export
 langchain-community
 django-jazzmin
 langchain-openai
-
-
+django-otp 
+django-two-factor-auth
 

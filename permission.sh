@@ -1,1 +1,0 @@
-sudo chmod 777 * && sudo chown -R $USER:$USER * && sudo chmod 777 .* && sudo chown -R $USER:$USER .*

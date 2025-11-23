@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div style="max-width: 800px; margin: 2rem auto;">
+    <h1>
+      Tanár értékelése:
+      {{ teacher.get_full_name|default:teacher.username }}
+    </h1>
+
+    <p>
+      Ez a kérdőív azért készült, hogy visszajelzést adj az órát tartó tanárról.
+      A válaszaid anonimek, és fejlesztő céllal használjuk őket.
+      Kérjük, őszintén válaszolj!
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1.5rem;">
+        <strong>Skála (skálás kérdésekhez):</strong><br>
+        1 – Egyáltalán nem igaz<br>
+        2 – Inkább nem igaz<br>
+        3 – Részben igaz<br>
+        4 – Inkább igaz<br>
+        5 – Teljesen igaz
+      </div>
+
+      {% for field, question in question_fields %}
+        <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
+          {% if question.dimension %}
+            <h3 style="margin-bottom: 0.3rem;">{{ question.dimension.name }}</h3>
+          {% endif %}
+
+          <p style="margin-bottom: 0.3rem;">{{ question.text }}</p>
+
+          <div>
+            {{ field }}
+            {% if field.errors %}
+              <div style="color: red;">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+
+      <button type="submit">Küldés</button>
+    </form>
+  </div>
+{% endblock %}
